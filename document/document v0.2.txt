@@ -1,0 +1,36 @@
+版本号：0.2v
+运行环境：
+	python3.11环境
+	第三方库：
+		pillow
+		scikit-learn
+		tkinter
+		matplotlib
+
+更新日志：
+	增加了裁剪图片函数
+	增加了缩放图片函数
+	更新了数据集
+	
+	效果：
+		识别精确度有小幅度上升
+		投入训练集不再对图片大小有严格要求
+		识别图片不再对大小有严格要求
+目前问题：
+	3，6，8识别效果差
+	可视化功能尚未完成
+文件结构说明：
+	.idea __pycache__	开发环境文件夹
+	demo_viedo		前期演示视频
+	document		说明文档
+	ori_data		存放训练集的文件夹
+	try			测试用文件夹
+	identify.py		KNN算法函数文件
+	imgfunc.py		图像处理文件
+	testfunc.py		开发用测试函数文件
+	winfunc.py		窗口函数文件
+	main.py			主文件
+
+联系作者：
+	wangdoublej@stu.xjtu.edu.cn
+			
