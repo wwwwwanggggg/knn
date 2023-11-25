@@ -1,0 +1,19 @@
+运行条件：
+	python 3.11
+	scikit-learn
+	pillow
+	请运行identify.py 文件
+
+实现方法：
+	sklearn.neighbor模块中的KNN邻近模型
+
+目前存在的问题：
+	当所有的数字加入之后，识别的精度非常差，例如：7，1不分；8，5部分
+		不过目前我只用10个数据进行了训练，所以可能在精度上不够
+
+	可视化部分还没有做
+	KNN 部分可以再讨论一下，看看有没有更好的方案
+
+
+联系作者：
+	wangdoublej@stu.xjtu.edu.cn

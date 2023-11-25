@@ -53,7 +53,7 @@ class Neigh:
                 for k in range(y_min, y_max):
                     tem.extend(self.board[j][k].value)
             count = Counter(tem)
-            va = count.most_common(2)
+            va = count.most_common(9)
             for l in va:
                 res.append(l[0])
 

@@ -1,4 +1,5 @@
 from PIL import Image
+import os
 
 def get_coordinate(path):
     """将图片转换成位图矩阵"""
@@ -37,13 +38,20 @@ name = {0: "one", 1: "two", 2: "three", 3: "four", 4: "five", 5: "six",
         6: "seven", 7: "eight", 8: "nine", 9: "zero"}
 for i in name:
     l = []
-    for j in range(1,56+1):
-        try:
-            l += get_coordinate(f"./ori_data/{name[i]}/  ({j}).png")
-        except FileNotFoundError:
-            break
+    j = 1
+    file = os.listdir(f"./ori_data/{name[i]}")
+    for k in file:
+        l += get_coordinate(f"./ori_data/{name[i]}/{k}")
+    # while True:
+    #     try:
+    #         l += get_coordinate(f"./ori_data/{name[i]}/  ({j}).png")
+    #         j+=1
+    #     except FileNotFoundError:
+    #         break
     cut_coordinate(l)
     zoom(l)
     data.append(l)
 
 
+
+print(1)
