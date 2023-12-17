@@ -13,6 +13,10 @@ type UserInfo struct {
 	Password string `json:"password" binding:"required"`
 }
 
+type General struct {
+	Message string `json:"message"`
+}
+
 func Convert(s string) string {
 	after := md5.Sum([]byte(s))
 	res := hex.EncodeToString(after[:])
@@ -75,7 +79,7 @@ func (u *User) GrabTicket(Id uint, userId uint) (interface{}, error) {
 		return 0, errors.New("演出不存在")
 	}
 	if show.CurrCapacity == 0 {
-		return 0, errors.New("票已售完")
+		return General{Message: "票已售完"}, nil
 	}
 	if err := model.DB.Model(&show).
 		Update("curr_capacity", show.CurrCapacity-1).
@@ -85,15 +89,15 @@ func (u *User) GrabTicket(Id uint, userId uint) (interface{}, error) {
 	if err := model.DB.Model(&show).Update("sold", show.Sold+1).Error; err != nil {
 		return 0, errors.New("系统有误")
 	}
-	var user model.User
-	if err := model.DB.Model(&model.User{}).
-		Where("id = ?", userId).
-		Find(&user).Error; err != nil {
-		return 0, errors.New("这是用户查找")
+	info := struct {
+		ShowId int `column:"show_id"`
+		UserId int `column:"user_id"`
+	}{
+		ShowId: int(Id),
+		UserId: int(userId),
 	}
-	if err := model.DB.Model(&model.Show{}).Where("id = ?", show.ID).Association("Users").
-		Append(&user).Error; err != nil {
-		return 0, errors.New("系统有误")
+	if err := model.DB.Table("show_user").Create(&info).Error; err != nil {
+		return 0, errors.New("抢票失败")
 	}
 	return struct {
 		TicketId uint
@@ -103,4 +107,59 @@ func (u *User) GrabTicket(Id uint, userId uint) (interface{}, error) {
 		ShowId:   show.ID,
 	}, nil
 
+}
+
+func (u *User) GetTicketInfo(Id int) (interface{}, error) {
+	var shows model.User
+	if err := model.DB.Model(&model.User{}).
+		Where("id = ?", Id).Preload("Show").
+		Find(&shows).Error; err != nil {
+		return 0, errors.New("用户不存在")
+	}
+	return struct {
+		Total int          `json:"total"`
+		Shows []model.Show `json:"show"`
+	}{
+		Total: len(shows.Show),
+		Shows: shows.Show,
+	}, nil
+}
+
+func (u *User) AbandonTicket(tId int, uId int) (interface{}, error) {
+	var user model.User
+	if err := model.DB.Model(&model.User{}).
+		Where("id = ?", uId).
+		Preload("Show").
+		Find(&user).Error; err != nil {
+		return 0, errors.New("用户不存在")
+	}
+	if len(user.Show) > 0 {
+		var info struct {
+			StarId uint
+			UserId uint
+		}
+		if err := model.DB.Table("show_user").
+			Where("show_id = ? AND user_id = ?", tId, uId).
+			Find(&info).Error; err != nil {
+			return 0, errors.New("演出不存在")
+		}
+		if err := model.DB.Table("show_user").
+			Where("show_id = ? AND user_id = ?", tId, uId).
+			Delete(&info).Error; err != nil {
+			return 0, errors.New("删除失败")
+		}
+		var show model.Show
+		if err := model.DB.Model(&model.Show{}).
+			Where("id = ?", tId).Find(&show).Error; err != nil {
+			return 0, errors.New("删除失败2")
+		}
+		if err := model.DB.Model(&show).
+			Update("sold", show.Sold-1).
+			Update("curr_capacity", show.CurrCapacity+1).Error; err != nil {
+			return 0, errors.New("删除失败3")
+		}
+	}
+	return General{
+		Message: "票已成功放弃",
+	}, nil
 }

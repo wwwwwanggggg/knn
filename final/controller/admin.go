@@ -42,15 +42,15 @@ func (a *Admin) AddShow(c *gin.Context) {
 
 func (a *Admin) UpdateStar(c *gin.Context) {
 	var info struct {
-		Name  string `json:"name"`
-		Intro string `json:"intro"`
+		StarId int    `json:"id" binding:"required"`
+		Name   string `json:"name"`
+		Intro  string `json:"intro"`
 	}
-	Id, err_0 := strconv.Atoi(c.Param("id"))
-	if err := c.ShouldBindJSON(&info); err != nil || err_0 != nil {
+	if err := c.ShouldBindJSON(&info); err != nil {
 		c.Error(common.ErrNew(err, common.ParamErr))
 		return
 	}
-	resp, err := srv.Admin.UpdateStar(info.Name, info.Intro, Id)
+	resp, err := srv.Admin.UpdateStar(info.Name, info.Intro, info.StarId)
 	if err != nil {
 		c.Error(common.ErrNew(err, common.SysErr))
 		return
@@ -59,20 +59,19 @@ func (a *Admin) UpdateStar(c *gin.Context) {
 
 }
 
-// func (a *Admin) UpdateShow(c *gin.Context) {
-// 	Id, err_0 := strconv.Atoi(c.Param("id"))
-// 	var show service.UpdateShowInfo
-// 	if err := c.ShouldBindJSON(&show); err != nil || err_0 != nil {
-// 		c.Error(common.ErrNew(err, common.ParamErr))
-// 		return
-// 	}
-// 	resp, err := srv.Admin.UpdateShow(show, Id)
-// 	if err != nil {
-// 		c.Error(common.ErrNew(err, common.SysErr))
-// 		return
-// 	}
-// 	c.JSON(http.StatusOK, ResponseNew(c, resp))
-// }
+func (a *Admin) UpdateShow(c *gin.Context) {
+	var show service.UpdateShowInfo
+	if err := c.ShouldBindJSON(&show); err != nil {
+		c.Error(common.ErrNew(err, common.ParamErr))
+		return
+	}
+	resp, err := srv.Admin.UpdateShow(show, int(show.ShowId))
+	if err != nil {
+		c.Error(common.ErrNew(err, common.SysErr))
+		return
+	}
+	c.JSON(http.StatusOK, ResponseNew(c, resp))
+}
 
 func (a *Admin) GetStar(c *gin.Context) {
 	var form common.PagerForm
@@ -123,6 +122,20 @@ func (a *Admin) DeleteStar(c *gin.Context) {
 		return
 	}
 	resp, err := srv.Admin.DeleteStar(Id)
+	if err != nil {
+		c.Error(common.ErrNew(err, common.SysErr))
+		return
+	}
+	c.JSON(http.StatusOK, ResponseNew(c, resp))
+}
+
+func (a *Admin) GetUser(c *gin.Context) {
+	var form common.PagerForm
+	if err := c.ShouldBindQuery(&form); err != nil {
+		c.Error(common.ErrNew(err, common.ParamErr))
+		return
+	}
+	resp, err := srv.Admin.GetUser(form)
 	if err != nil {
 		c.Error(common.ErrNew(err, common.SysErr))
 		return

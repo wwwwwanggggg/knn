@@ -30,14 +30,15 @@ type GetStarInfo struct {
 }
 
 type UpdateShowInfo struct {
-	Title       string    `json:"title" gorm:"omitempty"`
-	Starttime   time.Time `json:"starttime" time_format:"2006-01-02 15:04:05" gorm:"omitempty"`
-	Endtime     time.Time `json:"endtime" time_format:"2006-01-02 15:04:05" gorm:"omitempty"`
-	Showcontent string    `json:"showcontent" gorm:"omitempty"`
-	Promo       string    `json:"promo" gorm:"omitempty"`
-	Performers  []uint    `json:"performers" gorm:"omitempty"`
-	MaxCapacity int       `json:"maxcapacity" gorm:"omitempty"`
-	Location    string    `json:"location" gorm:"omitempty"`
+	ShowId      uint      `json:"id" binding:"required"`
+	Title       string    `json:"title"`
+	Starttime   time.Time `json:"starttime" time_format:"2006-01-02 15:04:05"`
+	Endtime     time.Time `json:"endtime" time_format:"2006-01-02 15:04:05"`
+	Showcontent string    `json:"showcontent"`
+	Promo       string    `json:"promo"`
+	Performers  []uint    `json:"performers"`
+	MaxCapacity int       `json:"maxcapacity"`
+	Location    string    `json:"location"`
 }
 
 type GetShowInfo struct {
@@ -46,6 +47,16 @@ type GetShowInfo struct {
 	Starttime time.Time `json:"startTime" time_format:"2006-01-02 15:04:05"`
 	Endtime   time.Time `json:"endTime" time_format:"2006-01-02 15:04:05"`
 	Location  string    `json:"location"`
+}
+
+type Uinfo struct {
+	Id   int    `json:"userId"`
+	Name string `json:"userName"`
+}
+
+type GetUserInfo struct {
+	Total int     `json:"total"`
+	Users []Uinfo `json:"users"`
 }
 
 type Admin struct {
@@ -127,15 +138,68 @@ func (a *Admin) UpdateStar(name string, intro string, id int) (interface{}, erro
 	}, nil
 }
 
-// func (u *Admin) UpdateShow(show UpdateShowInfo, Id int) (interface{}, error) {
-// 	var s model.Show
-// 	if err := model.DB.Model(&model.Show{}).
-// 		Where("id = ?", Id).
-// 		First(&s).Error; err != nil {
-// 		return 0, errors.New("演出不存在")
-// 	}
+func (u *Admin) UpdateShow(show UpdateShowInfo, Id int) (interface{}, error) {
+	var s model.Show
+	if err := model.DB.Model(&model.Show{}).
+		Where("id = ?", Id).
+		First(&s).Error; err != nil {
+		return 0, errors.New("演出不存在")
+	}
+	if show.Title != "" {
+		if err := model.DB.Model(&s).Update("title", show.Title).Error; err != nil {
+			return 0, errors.New("修改失败")
+		}
+	}
+	if show.Promo != "" {
+		if err := model.DB.Model(&s).Update("promo", show.Promo).Error; err != nil {
+			return 0, errors.New("修改失败")
+		}
+	}
+	if show.Showcontent != "" {
+		if err := model.DB.Model(&s).Update("show_content", show.Showcontent).Error; err != nil {
+			return 0, errors.New("修改失败")
+		}
+	}
+	if show.Location != "" {
+		if err := model.DB.Model(&s).Update("location", show.Location).Error; err != nil {
+			return 0, errors.New("修改失败")
+		}
+	}
+	if show.MaxCapacity != 0 && show.MaxCapacity > s.Sold {
+		if err := model.DB.Model(&s).
+			Update("max_capacity", show.MaxCapacity).
+			Update("curr_capacity", show.MaxCapacity-s.Sold).
+			Error; err != nil {
+			return 0, errors.New("修改失败")
+		}
+	}
+	if show.Performers != nil {
+		var tem []struct {
+			ShowId uint `column:"show_id"`
+			StarId uint `column:"star_id"`
+		}
+		if err := model.DB.Table("show_star").
+			Where("show_id = ?", Id).
+			Delete(&tem).Error; err != nil {
+			return 0, errors.New("修改失败")
+		}
+		for _, i := range show.Performers {
+			var t struct {
+				ShowId uint `column:"show_id"`
+				StarId uint `column:"star_id"`
+			}
+			t.ShowId = s.ID
+			t.StarId = i
+			model.DB.Table("show_star").Create(&t)
+		}
+	}
 
-// }
+	return struct {
+		Message string
+	}{
+		Message: "演出详情已修改",
+	}, nil
+}
 
 func (a *Admin) GetStar(form common.PagerForm) (interface{}, error) {
 	var info []GetStarInfo
@@ -213,6 +277,21 @@ func (a *Admin) DeleteStar(Id int) (interface{}, error) {
 		Message string
 	}{
 		Message: "删除成功",
+	}, nil
+
+}
+
+func (a *Admin) GetUser(form common.PagerForm) (interface{}, error) {
+	var infos []Uinfo
+	if err := model.DB.Model(&model.User{}).
+		Select("id", "name").
+		Offset((form.Page - 1) * form.Limit).
+		Limit(form.Limit).Find(&infos).Error; err != nil {
+		return 0, errors.New("查询失败")
+	}
+	return GetUserInfo{
+		Total: len(infos),
+		Users: infos,
 	}, nil
 
 }

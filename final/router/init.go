@@ -1,9 +1,9 @@
 package router
 
 import (
-	"net/http"
 	"final/config"
 	"final/controller"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
@@ -14,7 +14,7 @@ func NewServer() *http.Server {
 	config.InitSession(r)
 	InitRouter(r)
 	s := &http.Server{
-		Addr:    "0.0.0.0:8088",
+		Addr:    "127.0.0.1:8080",
 		Handler: r,
 	}
 	return s
