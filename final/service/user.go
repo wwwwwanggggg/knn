@@ -9,7 +9,7 @@ import (
 )
 
 type UserInfo struct {
-	Name     string `json:"name" binding:"required"`
+	Name     string `json:"username" binding:"required"`
 	Password string `json:"password" binding:"required"`
 }
 
@@ -39,7 +39,7 @@ func (u *User) Register(info UserInfo) (int, error) {
 		Error; err != nil {
 		return 0, err
 	}
-	return int(user.ID), nil
+	return 1, nil
 }
 
 func (u *User) Login(info UserInfo) (int, error, bool) {
@@ -62,13 +62,19 @@ func (u *User) Login(info UserInfo) (int, error, bool) {
 
 func (u *User) GetShow(form common.PagerForm) (interface{}, error) {
 	var shows []model.Show
-	if err := model.DB.Model(&model.Show{}).
+	if err := model.DB.Model(&model.Show{}).Offset((form.Page-1)*form.Limit).Limit(form.Limit).
 		Select("id", "title", "starttime", "endtime", "location", "max_capacity", "curr_capacity").
 		Preload("Performers").
 		Find(&shows).Error; err != nil {
 		return 0, errors.New("查询错误")
 	}
-	return shows, nil
+	return struct {
+		Total int          `json:"total"`
+		Shows []model.Show `json:"shows"`
+	}{
+		Total: len(shows),
+		Shows: shows,
+	}, nil
 }
 
 func (u *User) GrabTicket(Id uint, userId uint) (interface{}, error) {
@@ -162,4 +168,15 @@ func (u *User) AbandonTicket(tId int, uId int) (interface{}, error) {
 	return General{
 		Message: "票已成功放弃",
 	}, nil
+}
+
+func (u *User) OauthLogin(name string) (int, error) {
+	NewUser := model.User{
+		Name:     name,
+		Password: "",
+	}
+	if err := model.DB.Model(&model.User{}).FirstOrCreate(&NewUser).Error; err != nil {
+		return 0, errors.New("创建用户失败")
+	}
+	return int(NewUser.ID), nil
 }

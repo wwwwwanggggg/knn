@@ -30,14 +30,14 @@ func InitRouter(r *gin.Engine) {
 		apiRouter.GET("/user/tickets", ctr.User.GetTicketInfo)
 		apiRouter.DELETE("/user/adandon-ticket", ctr.User.AbandonTicket)
 		apiRouter.GET("/admin/users", ctr.Admin.GetUser)
+		apiRouter.GET("/test", ctr.Hello.Hello)
 		// end
 	}
 	r.GET("/oauth2/authorize", ctr.User.OauthLogin)
-	r.GET("cb", ctr.User.Callback)
-	r.POST("/oauth2/callback", ctr.User.Callback)
-	r.POST("/oauth2/authorize", ctr.User.Token)
+	r.GET("/oauth2/callback", ctr.User.Callback)
+
 }
 
-// gto_rpfl6ww3lmmqauqqyqrwhsalnpk3jnyzwd2rjkjejd2wahne452a
+// 78d198cc-9cc0-49a3-bfab-63f195123895
 
-// 157256ba-9133-459b-b970-d88044b2f56e
+// gto_wuui7wurtx6trr2nqzxn4ubps6dvl55a27w74syzh3tf63q3s6aq

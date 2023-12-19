@@ -1,9 +1,9 @@
 package controller
 
 import (
+	"final/common"
 	"fmt"
 	"net/http"
-	"final/common"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -14,8 +14,9 @@ type Hello struct {
 
 func (s *Hello) Hello(c *gin.Context) {
 	var form struct {
-		Msg string `form:"msg" binding:"required"`
-		common.PagerForm
+		Msg  string `form:"msg" binding:"required"`
+		Test string `form:"t" binding:"required"`
+		// common.PagerForm
 	}
 	if err := c.ShouldBindQuery(&form); err != nil {
 		fmt.Printf("controller %v\n", err)
