@@ -154,7 +154,7 @@ func (u *User) AbandonTicket(c *gin.Context) {
 }
 
 func (u *User) OauthLogin(c *gin.Context) {
-	url := "https://git.tiaozhan.tech/login/oauth/authorize?client_id=78d198cc-9cc0-49a3-bfab-63f195123895&redirect_uri=http://127.0.0.1:8080/oauth2/callback&response_type=code&state=STATE"
+	url := "https://git.tiaozhan.tech/oauth/authorize?client_id=78d198cc-9cc0-49a3-bfab-63f195123895&redirect_uri=http://127.0.0.1:8080/oauth2/callback&response_type=code&state=STATE"
 	fmt.Println(url)
 	c.Redirect(http.StatusFound, url)
 
